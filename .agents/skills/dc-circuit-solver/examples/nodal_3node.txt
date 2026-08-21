@@ -1,0 +1,135 @@
+EXAMPLE: Three-node nodal analysis with a supernode
+====================================================
+
+PROBLEM
+-------
+A 20 V source connects node 1 to ground (node 1 positive).
+A 5 Ohm resistor R1 connects node 1 to node 2.
+A 10 Ohm resistor R2 connects node 2 to ground.
+A 10 V source connects node 2 to node 3, with node 3 at the higher potential.
+A 10 Ohm resistor R3 connects node 3 to ground.
+A 2 A current source pushes current from ground into node 3.
+
+Find all node voltages and verify by power balance.
+
+NETLIST (for numeric cross-check)
+---------------------------------
+V1 1 0 20
+R1 1 2 5
+R2 2 0 10
+V2 3 2 10
+R3 3 0 10
+I1 0 3 2
+
+
+--- EXPECTED RESPONSE ---
+
+
+1. CIRCUIT SUMMARY
+------------------
+Four nodes total, with node 0 as ground. Node 1 is pinned at 20 V by an
+independent source, so it is not an unknown. Nodes 2 and 3 are bridged by a
+10 V source that touches neither ground nor a fixed node, which makes them a
+supernode.
+
+Elements: R1 = 5 Ohm, R2 = 10 Ohm, R3 = 10 Ohm, V1 = 20 V, V2 = 10 V, I1 = 2 A.
+Unknowns: V2, V3.
+
+2. METHOD SELECTED
+------------------
+Nodal analysis with a supernode.
+
+Rule fired: a voltage source sits between two non-reference nodes. Individual
+KCL at node 2 or node 3 would require the unknown current through that source.
+Enclosing both nodes in one surface removes that current from the equation, and
+the source's own definition supplies the second equation.
+
+Mesh analysis would need three loop equations here versus two node equations,
+so nodal is also the smaller system.
+
+3. EQUATIONS
+------------
+Supernode {2, 3}, currents assumed to LEAVE the surface:
+
+    (V2 - V1)/R1  +  V2/R2  +  V3/R3  -  I1  =  0
+
+Constraint from the source inside the supernode:
+
+    V3 - V2  =  10 V
+
+Substituting known values and collecting terms:
+
+    (1/5 + 1/10) V2  +  (1/10) V3  =  20/5 + 2
+             -V2     +        V3   =  10
+
+Matrix form:
+
+    [  0.30   0.10 ] [V2]   [ 6 ]
+    [ -1.00   1.00 ] [V3] = [ 10]
+
+4. SOLUTION
+-----------
+From the constraint, V3 = V2 + 10. Substitute into the supernode equation:
+
+    (V2 - 20)/5  +  V2/10  +  (V2 + 10)/10  =  2
+
+Multiply through by 10:
+
+    2(V2 - 20)  +  V2  +  (V2 + 10)  =  20
+    2 V2 - 40 + V2 + V2 + 10         =  20
+    4 V2 - 30                        =  20
+    4 V2                             =  50
+    V2                               =  12.5 V
+
+    V3 = V2 + 10 = 22.5 V
+
+Branch currents:
+
+    I_R1 = (V1 - V2)/R1 = (20 - 12.5)/5  = 1.50 A   (node 1 -> node 2)
+    I_R2 = V2/R2        = 12.5/10        = 1.25 A   (node 2 -> ground)
+    I_R3 = V3/R3        = 22.5/10        = 2.25 A   (node 3 -> ground)
+
+Current through the 10 V source, from KCL at node 3 alone:
+
+    2 A  =  I_R3  +  I_V2
+    I_V2 = 2 - 2.25 = -0.25 A
+
+The negative sign means 0.25 A actually flows from node 2 into node 3 through
+the source. Since that current exits the source's positive terminal, the source
+is DELIVERING power.
+
+5. VERIFICATION
+---------------
+Power balance -- independent of the equations solved above.
+
+Delivered:
+    V1:  20 V x 1.50 A                  =  30.0 W
+    I1:  22.5 V x 2 A                   =  45.0 W
+    V2:  10 V x 0.25 A                  =   2.5 W
+                                  total =  77.5 W
+
+Dissipated:
+    R1:  (1.50)^2 x 5                   =  11.250 W
+    R2:  (1.25)^2 x 10                  =  15.625 W
+    R3:  (2.25)^2 x 10                  =  50.625 W
+                                  total =  77.500 W
+
+Delivered equals dissipated. The solution is consistent.
+
+6. RESULT BOX
+-------------
+    +-------------------------------+
+    |  V1 = 20.0 V   (source-fixed) |
+    |  V2 = 12.5 V                  |
+    |  V3 = 22.5 V                  |
+    |  Total power = 77.5 W         |
+    +-------------------------------+
+
+
+TEACHING NOTE
+-------------
+The most common error on this problem is writing KCL at node 2 and node 3
+separately, then getting stuck because the current through the 10 V source is
+unknown. Draw the supernode boundary before writing anything. The second
+equation is always the source constraint, and it is nearly free -- students
+lose points by forgetting to write it down, not by getting it wrong.

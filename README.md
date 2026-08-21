@@ -6,12 +6,16 @@ An AI-powered skill for **EE 302 (Electric Circuit Theory)** students that solve
 
 ## What Is This?
 
-This is a **Claude Code skill** — a specialized prompt that turns Claude into a structured circuit analysis tutor. Instead of just giving you an answer, it walks through the full EE 302 methodology:
+This is an **agent skill** — a structured instruction file that turns an AI coding agent into a circuit analysis tutor. Instead of just giving you an answer, it walks through the full EE 302 methodology:
 
 - Sets up KCL/KVL equations in matrix form
 - Shows every algebraic step with units
 - Verifies the answer with an independent check
 - Explains *why* it chose a particular method
+
+It is built on the [agentskills.io](https://agentskills.io) open standard, so `SKILL.md` is not tied to one vendor. The setup instructions below cover Claude Code because that is what it was developed and tested against, but the skill file itself is portable to any agent that reads the standard.
+
+Nothing here needs to be installed, compiled, or configured — the entire skill is plain markdown.
 
 Think of it as a knowledgeable study partner available 24/7.
 
@@ -231,6 +235,26 @@ ee302-agent-skills/
                 ├── thevenin_dep.txt      # Thevenin with dependent source
                 └── opamp_diff_amp.txt    # Difference amplifier example
 ```
+
+---
+
+## Related: the Python solver
+
+This repository is prompt-only. There is a companion implementation at
+[ihas27/dc-circuit-tutor](https://github.com/ihas27/dc-circuit-tutor) — a
+Modified Nodal Analysis solver written from scratch in numpy, exposed as tools
+in an agentic loop so the agent can compute exact numerical answers instead of
+only deriving them by hand.
+
+| | This repo | dc-circuit-tutor |
+|---|---|---|
+| Install | none | Python 3.10+, numpy |
+| API key | not needed | required (paid) |
+| Answers | derived by hand | derived, then verified numerically |
+| Best for | learning the method | checking your arithmetic |
+
+The two are complementary: use this one to learn how the analysis is structured,
+and that one when you want an independent numerical check on a long problem.
 
 ---
 

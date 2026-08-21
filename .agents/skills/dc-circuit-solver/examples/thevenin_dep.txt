@@ -1,0 +1,143 @@
+EXAMPLE: Thevenin equivalent with a dependent source (CCVS)
+===========================================================
+
+PROBLEM
+-------
+A 2 A independent current source drives current from ground into node c.
+A 4 Ohm resistor R1 connects node c to ground. Define Ix as the current
+through R1, flowing from node c down to ground.
+
+A dependent voltage source of value 2*Ix connects node c to node d, with
+node d at the higher potential (Vd - Vc = 2*Ix).
+
+A 2 Ohm resistor R2 connects node d to terminal a.
+Terminal b is ground.
+
+Find the Thevenin equivalent seen at terminals a-b, and the Norton equivalent.
+
+NOTE: this circuit cannot be handed to the MNA solver directly -- it stamps
+only R, V, and I elements. Solve it analytically.
+
+
+--- EXPECTED RESPONSE ---
+
+
+1. CIRCUIT SUMMARY
+------------------
+Three non-reference nodes: c, d, and terminal a. Ground is node b.
+
+Elements: I_s = 2 A (independent), R1 = 4 Ohm, a CCVS of 2*Ix volts,
+and R2 = 2 Ohm feeding terminal a.
+
+The controlling variable Ix is the current down through R1, so Ix = Vc/4.
+
+2. METHOD SELECTED
+------------------
+Thevenin equivalent, computed as Vth from the open-circuit condition and Rth
+from a test source.
+
+Rule fired: a dependent source is present. This matters more than usual here,
+because the familiar shortcut -- zero every source and combine resistors by
+inspection -- is INVALID. A dependent source does not turn off; its value is
+set by a circuit variable, not by an external supply. Zeroing it would compute
+the resistance of a different circuit.
+
+3. EQUATIONS
+------------
+PART A -- Open-circuit voltage.
+
+With terminals a-b open, no current can flow through R2, and therefore none
+flows through the CCVS branch either. All source current returns through R1:
+
+    Ix = 2 A
+
+    Vc = Ix * R1
+    Vd = Vc + 2*Ix
+    Va = Vd - (0 A)(R2) = Vd
+
+PART B -- Thevenin resistance by test source.
+
+Zero the INDEPENDENT source only (a current source becomes an open circuit).
+The CCVS stays live. Apply a 1 V test source at terminal a and let I be the
+current it drives into the network, a -> R2 -> d -> CCVS -> c -> R1 -> ground.
+
+With the 2 A source open, all of I flows through R1, so Ix = I:
+
+    Vc = 4 I
+    Vd = Vc + 2*Ix = 4I + 2I = 6I
+    Va = Vd + I*R2 = 6I + 2I = 8I
+
+    Rth = V_test / I
+
+4. SOLUTION
+-----------
+PART A:
+
+    Ix = 2 A
+    Vc = (2 A)(4 Ohm)          = 8 V
+    Vd = 8 V + 2(2 A)          = 8 V + 4 V = 12 V
+    Va = Vd                    = 12 V
+
+    Vth = 12 V
+
+PART B:
+
+    Va = 8 I  =  1 V
+    I   = 1/8 A = 0.125 A
+
+    Rth = 1 V / 0.125 A = 8 Ohm
+
+Norton equivalent follows directly:
+
+    In = Vth / Rth = 12 V / 8 Ohm = 1.5 A     (with the same 8 Ohm in parallel)
+
+5. VERIFICATION
+---------------
+Compute the short-circuit current directly and check that it equals In. This is
+a genuinely independent calculation -- it uses the real 2 A source and never
+touches the test-source result.
+
+Short terminal a to ground. Let I2 be the current leaving node c through the
+CCVS branch toward terminal a. With Va = 0:
+
+    Vd - Va = I2 * R2      ->   Vd = 2 I2
+    Vd = Vc + 2 Ix  and  Vc = 4 Ix
+    so  4 Ix + 2 Ix = 2 I2   ->   6 Ix = 2 I2   ->   I2 = 3 Ix
+
+KCL at node c:
+
+    2 A = Ix + I2 = Ix + 3 Ix = 4 Ix
+    Ix  = 0.5 A
+    I2  = 1.5 A
+
+    Isc = 1.5 A
+
+This matches In = Vth/Rth = 1.5 A exactly. The Thevenin resistance is confirmed.
+
+Sanity check on the dependent source: notice Ix changed from 2 A (open) to
+0.5 A (shorted), and the CCVS value changed with it, from 4 V to 1 V. That
+change is precisely why it could not be zeroed in Part B.
+
+6. RESULT BOX
+-------------
+    +--------------------------------+
+    |  Vth = 12 V                    |
+    |  Rth = 8 Ohm                   |
+    |  In  = 1.5 A                   |
+    |  Isc = 1.5 A  (check)          |
+    +--------------------------------+
+
+
+TEACHING NOTE
+-------------
+Three methods exist for Rth and only two work here:
+
+  1. Kill sources, combine by inspection  -- INVALID with dependent sources
+  2. Test source, Rth = V_test / I_test   -- always valid
+  3. Rth = Voc / Isc                      -- always valid, but fails if Voc
+                                             and Isc are both zero, which
+                                             happens when a circuit has only
+                                             dependent sources
+
+Method 2 is the safe default. Method 3 makes an excellent verification step
+whenever the circuit contains at least one independent source, as it does here.

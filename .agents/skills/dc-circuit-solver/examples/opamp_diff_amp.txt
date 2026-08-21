@@ -1,0 +1,140 @@
+EXAMPLE: Ideal op-amp difference amplifier
+==========================================
+
+PROBLEM
+-------
+An ideal op-amp is wired as a difference amplifier.
+
+    V1 = 2 V  drives R1 = 10 kOhm into the inverting input (node a)
+    Rf = 30 kOhm connects node a to the output
+    V2 = 3 V  drives R2 = 10 kOhm into the non-inverting input (node b)
+    R3 = 30 kOhm connects node b to ground
+
+Find Vout. Do not quote the difference-amplifier formula -- derive it.
+
+
+--- EXPECTED RESPONSE ---
+
+
+1. CIRCUIT SUMMARY
+------------------
+Two op-amp input nodes, a (inverting) and b (non-inverting), plus the output
+node. R1 and Rf form the inverting path; R2 and R3 form the non-inverting path.
+
+Elements: R1 = R2 = 10 kOhm, Rf = R3 = 30 kOhm.
+Sources: V1 = 2 V, V2 = 3 V.
+Unknown: Vout.
+
+2. METHOD SELECTED
+------------------
+Ideal op-amp analysis, then KCL at the inverting node.
+
+Rule fired: the circuit contains an op-amp, which takes priority over node
+counting. Before using the ideal assumptions, confirm negative feedback: Rf
+runs from the output back to the INVERTING input, so feedback is negative and
+both assumptions are valid.
+
+    Assumption 1 (virtual short):    V_a = V_b
+    Assumption 2 (no input current): I_a = I_b = 0
+
+Assumption 2 is what makes the non-inverting side a plain voltage divider --
+nothing loads it.
+
+3. EQUATIONS
+------------
+Non-inverting side, unloaded divider:
+
+    V_b = V2 * R3 / (R2 + R3)
+
+Virtual short:
+
+    V_a = V_b
+
+KCL at node a, currents assumed to LEAVE the node, with zero current into
+the op-amp input:
+
+    (V_a - V1)/R1  +  (V_a - Vout)/Rf  =  0
+
+One equation, one unknown, since V_a is already determined.
+
+4. SOLUTION
+-----------
+Divider first:
+
+    V_b = 3 V * 30k / (10k + 30k)
+        = 3 V * 0.75
+        = 2.25 V
+
+    V_a = 2.25 V
+
+KCL at node a:
+
+    (2.25 - 2)/10k  +  (2.25 - Vout)/30k  =  0
+
+Multiply through by 30k:
+
+    3(2.25 - 2)  +  (2.25 - Vout)  =  0
+    3(0.25)      +   2.25 - Vout   =  0
+    0.75         +   2.25 - Vout   =  0
+    3.00                    - Vout =  0
+
+    Vout = 3.00 V
+
+Rearranged symbolically, the same algebra gives
+
+    Vout = (Rf/R1)(V2 - V1)      valid only when R1/Rf = R2/R3
+
+Here the ratios match (10k/30k on both sides), so:
+
+    Vout = 3 * (3 - 2) = 3 V     -- agrees with the KCL result
+
+5. VERIFICATION
+---------------
+Two independent checks.
+
+CHECK 1 -- KCL current balance at node a:
+
+    Through R1:  (V1 - V_a)/R1 = (2 - 2.25)/10k   = -25 uA
+                 i.e. 25 uA flows FROM node a TOWARD V1
+
+    Through Rf:  (Vout - V_a)/Rf = (3 - 2.25)/30k = +25 uA
+                 i.e. 25 uA flows FROM the output INTO node a
+
+    Sum at node a: +25 uA - 25 uA + 0 (op-amp input) = 0.  Balanced.
+
+The output supplies exactly the current the input branch draws, which is the
+signature of a correctly solved op-amp node.
+
+CHECK 2 -- Common-mode rejection limit:
+
+Set V1 = V2 = 5 V. A difference amplifier with matched ratios must output 0 V.
+
+    V_b = 5 * 0.75 = 3.75 V = V_a
+    (3.75 - 5)/10k + (3.75 - Vout)/30k = 0
+    3(-1.25) + 3.75 - Vout = 0
+    -3.75 + 3.75 - Vout = 0
+    Vout = 0 V
+
+The common-mode gain is zero, as required. Both checks pass.
+
+6. RESULT BOX
+-------------
+    +--------------------------------+
+    |  V_b = V_a = 2.25 V            |
+    |  Vout      = 3.00 V            |
+    |  Gain      = Rf/R1 = 3 V/V     |
+    |  (differential; CM gain = 0)   |
+    +--------------------------------+
+
+
+TEACHING NOTE
+-------------
+Students who memorize Vout = (Rf/R1)(V2 - V1) get this problem right and the
+next one wrong, because the formula silently assumes R1/Rf = R2/R3. Break that
+match -- say R3 = 20 kOhm -- and the shortcut fails while the KCL derivation
+still works unchanged. Derive from the virtual short every time; the formula is
+a result, not a tool.
+
+Also note what was never needed: the op-amp's supply rails, its open-loop gain,
+and any current through R3 beyond the divider. Ideal-op-amp problems are short
+precisely because Assumption 2 decouples the two input branches.
